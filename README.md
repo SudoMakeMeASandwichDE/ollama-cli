@@ -6,6 +6,7 @@ To use it, download `ollama-cli.py` and execute it with `python3 ollama-cli.py`.
 Supports Linux and Windows (experimental)
 
 On Linux, chats and configurations will be saved in `~/.config/ollama-cli/`
+
 On Windows, these will be saved in `C:\Users\<username>\AppData\ollama-cli`
 
 NO OFFICIAL OLLAMA PRODUCT
