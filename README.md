@@ -10,4 +10,7 @@ On Windows, these will be saved in `C:\Users\<username>\AppData\ollama-cli`
 
 NO OFFICIAL OLLAMA PRODUCT
 
-This product was crated with the hope to be helpful but comes WITHOUT ANY WARRANTY
+ollama-cli is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
