@@ -19,6 +19,12 @@ import ollama
 import os
 import ast
 import platform
+import argparse
+
+parser = argparse.ArgumentParser(description="ollama-cli, a simple but useful command line interface for Ollama to execute LLMs in the Terminal.")
+parser.add_argument('-m', '--model', type=str, help='Start ollama-cli directly into a certain model')
+args = parser.parse_args()
+
 
 print("""
 Welcome to ollama-cli!
@@ -31,8 +37,6 @@ A simple but useful command line interface for Ollama to execute LLMs in the Ter
 
 ollama-cli works with Linux and Windows (experimental).
 
-For help type '/?'
-      
 THIS IS NOT AN OFFICIAL OLLAMA PRODUCT! NO WARRATY!
 
 """)
@@ -44,10 +48,10 @@ if platform.system() == 'Linux':
     default_model_path = os.path.expanduser("~/.config/ollama-cli/default.txt")
 
 if platform.system() == 'Windows':
+    print("It seems like you're using Windows. Experimental here!\n")
     appdata_path = os.getenv('APPDATA')
     chat_folder_path = os.path.join(appdata_path, 'ollama-cli', 'chats')
     default_model_path = os.path.join(appdata_path, 'ollama-cli', 'default.txt')
-    print("It seems like, you're using Windows. Experimental here!\n")
 
 os.makedirs(chat_folder_path, exist_ok=True)
 
@@ -64,31 +68,44 @@ if not models_list:
     print("No models available. Please install one.")
     exit()
 
+argmodelbool = False
+argmodel = args.model
+
+if argmodel:
+    if argmodel in models_array:
+        model = argmodel
+        argmodelbool = True
+        print(f"Welcome to {model}!")
+    else:
+        print("Error: Model does not exist")
+        exit()
+
 defaultmodelbool = False
 maybemodel = ""
 
-if os.path.exists(default_model_path):
-    with open(default_model_path, 'r') as file:
-        maybemodel = file.read().strip()
-    if maybemodel in models_array:
-        defaultmodelbool = True
+if not argmodelbool:
+    if os.path.exists(default_model_path):
+        with open(default_model_path, 'r') as file:
+            maybemodel = file.read().strip()
+        if maybemodel in models_array:
+            defaultmodelbool = True
 
-if defaultmodelbool:
-    model = maybemodel
-    print(f"Welcome to {model}!")
-else:
-    while True:
-        print(f"Choose one of the following models:\n\n{models_string}")
-        model = input("> ")
-        if model in models_array:
-            print(f"\nWelcome to {model}!")
-            if not os.path.exists(default_model_path):
-                if input(f"Do you want to set {model} as default? [y/n] > ").lower() == "y":
-                    with open(default_model_path, 'w') as file:
-                        file.write(model)
-            break
-        else:
-            print("Error: Model does not exist\n")
+    if defaultmodelbool:
+        model = maybemodel
+        print(f"Welcome to {model}!")
+    else:
+        while True:
+            print(f"Choose one of the following models:\n\n{models_string}")
+            model = input("> ")
+            if model in models_array:
+                print(f"\nWelcome to {model}!")
+                if not os.path.exists(default_model_path):
+                    if input(f"Do you want to set {model} as default? [y/n] > ").lower() == "y":
+                        with open(default_model_path, 'w') as file:
+                            file.write(model)
+                break
+            else:
+                print("Error: Model does not exist\n")
 
 print("""Ask me anything\nFor further commands, type '/?'.""")
 
@@ -115,15 +132,16 @@ while True:
     if user_prompt == "/?":
         print("/save [chat name] to save chat\n/load [chat name] to load chat\n/list to list chats\n/new to start a new chat\n/delete [chat name] to delete chat\n/changemodel [model name] to change model\n/exit to exit")
 
-    elif user_prompt.startswith("/save "):
+    elif user_prompt.startswith("/save"):
         chat_name = user_prompt[6:].strip()
         if chat_name:
             save(chat_name)
             savedchat = True
+            print(f"chat saved as '{chat_name}'\nThis chat will be saved automatically after every interaction.")
         else:
             print("Please specify the name of your chat.")
 
-    elif user_prompt.startswith("/load "):
+    elif user_prompt.startswith("/load"):
         chat_name = user_prompt[6:].strip()
         if os.path.exists(os.path.join(chat_folder_path, f"{chat_name}.txt")):
             load_chat(chat_name)
@@ -143,7 +161,7 @@ while True:
         else:
             print("Chat not found. Type /list to list all your chats.")
 
-    elif user_prompt in ["/new", "/new "]:
+    elif user_prompt == "/new":
         if not savedchat:
             if input("Do you want to save chat? [y/n] > ").lower() == "y":
                 chat_name = input("Chat name: > ").strip()
@@ -151,9 +169,10 @@ while True:
             messages = []
         else:
             messages = []
+            print("Started a new conversation")
             savedchat = False
 
-    elif user_prompt.startswith("/changemodel "):
+    elif user_prompt.startswith("/changemodel"):
         new_model = user_prompt[13:].strip()
         if new_model in models_array:
             model = new_model
