@@ -141,6 +141,8 @@ def load_chat(chat_name):
         console.print(f"Error loading chat: [bold red]{str(e)}[/bold red]", style="bold red")
 
 while True:
+    file = False
+    websearch = False
     user_prompt = input("> ").strip()
 
     if user_prompt == "/?":
@@ -151,6 +153,8 @@ while True:
             /list to list chats
             /new to start a new chat
             /delete [chat name] to delete chat
+            /file [file path] to upload a text file (experimental)
+            /write [file path] to write the LLM's last answer to a file
             /changemodel [model name] to change model
             /exit to exit
             """,
@@ -158,7 +162,8 @@ while True:
             border_style="blue"
         ))
 
-    elif user_prompt.startswith("/save"):
+
+    elif user_prompt.startswith("/save "):
         chat_name = user_prompt[6:].strip()
         if chat_name:
             save(chat_name)
@@ -167,7 +172,7 @@ while True:
         else:
             console.print("Please specify the name of your chat.", style="bold red")
 
-    elif user_prompt.startswith("/load"):
+    elif user_prompt.startswith("/load "):
         chat_name = user_prompt[6:].strip()
         if os.path.exists(os.path.join(chat_folder_path, f"{chat_name}.txt")):
             load_chat(chat_name)
@@ -201,13 +206,54 @@ while True:
             console.print("Started a new conversation", style="bold green")
             savedchat = False
 
-    elif user_prompt.startswith("/changemodel"):
+    elif user_prompt.startswith("/changemodel "):
         new_model = user_prompt[13:].strip()
         if new_model in models_array:
             model = new_model
             console.print(f"Now using [bold green]{model}.[/bold green]", style="bold green")
         else:
             console.print(f"Model is not installed or existing. Choose one of your installed ones:\n\n{models_string}", style="bold red")
+
+    
+
+    elif user_prompt.startswith("/file "):
+        file_path = user_prompt[6:].strip()
+        print(file_path)
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    file_content = file.read()
+                file = True
+                file_name = os.path.basename(file_path)
+                user_prompt_file = input("Your Prompt > ")
+                messages.append({'role':'user', 'content':f"""Given to you is a file called "{file_name}". This is, what the user wants you to do or to answer: "{user_prompt_file}". 
+                                 And this is the file content: 
+                                 "{file_content}" """})
+                print("assistant: ", end='')
+                try:
+                    response = ""
+                    for part in ollama.chat(model=model, messages=messages, stream=True):
+                        print(part['message']['content'], end='', flush=True)
+                        response += part['message']['content']
+                    print()
+                    messages.append({'role': 'assistant', 'content': response})
+                    if savedchat:
+                        save(chat_name)
+                except Exception as e:
+                    print(f"Error while trying to start model: {str(e)}")
+            except Exception as e:
+                print(f"Error: File not found or isn't a text file")
+
+    elif user_prompt.startswith("/write "):
+        write_file_name = user_prompt[7:].strip()
+        if '.' not in write_file_name:
+            write_file_name += ".txt"
+        for entry in reversed(messages):
+            if entry['role'] == 'assistant':
+                last_assistant_entry = entry['content']
+                break
+        with open(write_file_name, 'w') as f:
+            f.write(last_assistant_entry)
 
     elif user_prompt == "/exit":
         exit()
@@ -225,7 +271,7 @@ while True:
             if savedchat:
                 save(chat_name)
         except Exception as e:
-            console.print(f"Error while trying to start model: [bold red]{str(e)}[/bold red]", style="bold red")
+            console.print(f"Error while trying to use model: [bold red]{str(e)}[/bold red]", style="bold red")
 
     else:
         console.print("Command not found", style="bold red")
