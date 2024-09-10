@@ -127,12 +127,14 @@ def load_chat(chat_name):
         print(f"{message['role']}: {message['content']}\n")
 
 while True:
+    file = False
+    websearch = False
     user_prompt = input("> ").strip()
 
     if user_prompt == "/?":
-        print("/save [chat name] to save chat\n/load [chat name] to load chat\n/list to list chats\n/new to start a new chat\n/delete [chat name] to delete chat\n/changemodel [model name] to change model\n/exit to exit")
+        print("/save [chat name] to save chat\n/load [chat name] to load chat\n/list to list chats\n/new to start a new chat\n/delete [chat name] to delete chat\n/write [file path] to write the LLM's last answer to a file\n/file [file path] to upload a text file (experimental)\n/changemodel [model name] to change model\n/exit to exit")
 
-    elif user_prompt.startswith("/save"):
+    elif user_prompt.startswith("/save "):
         chat_name = user_prompt[6:].strip()
         if chat_name:
             save(chat_name)
@@ -141,7 +143,7 @@ while True:
         else:
             print("Please specify the name of your chat.")
 
-    elif user_prompt.startswith("/load"):
+    elif user_prompt.startswith("/load "):
         chat_name = user_prompt[6:].strip()
         if os.path.exists(os.path.join(chat_folder_path, f"{chat_name}.txt")):
             load_chat(chat_name)
@@ -172,13 +174,54 @@ while True:
             print("Started a new conversation")
             savedchat = False
 
-    elif user_prompt.startswith("/changemodel"):
+    elif user_prompt.startswith("/changemodel "):
         new_model = user_prompt[13:].strip()
         if new_model in models_array:
             model = new_model
             print(f"Now using {model}.")
         else:
             print(f"Model is not installed or existing. Choose one of your installed ones:\n\n{models_string}")
+
+    
+
+    elif user_prompt.startswith("/file "):
+        file_path = user_prompt[6:].strip()
+        print(file_path)
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, 'r', encoding='utf-8') as file:
+                    file_content = file.read()
+                file = True
+                file_name = os.path.basename(file_path)
+                user_prompt_file = input("Your Prompt > ")
+                messages.append({'role':'user', 'content':f"""Given to you is a file called "{file_name}". This is, what the user wants you to do or to answer: "{user_prompt_file}". 
+                                 And this is the file content: 
+                                 "{file_content}" """})
+                print("assistant: ", end='')
+                try:
+                    response = ""
+                    for part in ollama.chat(model=model, messages=messages, stream=True):
+                        print(part['message']['content'], end='', flush=True)
+                        response += part['message']['content']
+                    print()
+                    messages.append({'role': 'assistant', 'content': response})
+                    if savedchat:
+                        save(chat_name)
+                except Exception as e:
+                    print(f"Error while trying to start model: {str(e)}")
+            except Exception as e:
+                print(f"Error: File not found or isn't a text file")
+
+    elif user_prompt.startswith("/write "):
+        write_file_name = user_prompt[7:].strip()
+        if '.' not in write_file_name:
+            write_file_name += ".txt"
+        for entry in reversed(messages):
+            if entry['role'] == 'assistant':
+                last_assistant_entry = entry['content']
+                break
+        with open(write_file_name, 'w') as f:
+            f.write(last_assistant_entry)
 
     elif user_prompt == "/exit":
         exit()
@@ -196,7 +239,7 @@ while True:
             if savedchat:
                 save(chat_name)
         except Exception as e:
-            print(f"Error while trying to start model: {str(e)}")
+            print(f"Error while trying to use model: {str(e)}")
 
     else:
         print("Command not found")
