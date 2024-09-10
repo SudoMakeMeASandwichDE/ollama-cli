@@ -10,7 +10,7 @@ import argparse
 
 console = Console()
 
-parser = argparse.ArgumentParser(description="ollama-cli, a simple but useful command line interface for Ollama to execute LLMs in the Terminal.")
+parser = argparse.ArgumentParser(description="ollama-cli, a simple but useful command line interface for Ollama to execute LLMs in the terminal.")
 parser.add_argument('-m', '--model', type=str, help='Start ollama-cli directly into a certain model')
 args = parser.parse_args()
 
@@ -22,7 +22,7 @@ welcome_message = Panel(
     (   )
     (   )
 
-    A simple but useful command line interface for Ollama to execute LLMs in the Terminal.
+    A simple but useful command line interface for Ollama to execute LLMs in the terminal.
 
     ollama-cli works with Linux and Windows (experimental).
 
@@ -38,11 +38,14 @@ if platform.system() == 'Linux':
     chat_folder_path = os.path.expanduser("~/.config/ollama-cli/chats/")
     default_model_path = os.path.expanduser("~/.config/ollama-cli/default.txt")
 
-if platform.system() == 'Windows':
+elif platform.system() == 'Windows':
     console.print("It seems like you're using Windows. Experimental here!\n", style="bold yellow")
     appdata_path = os.getenv('APPDATA')
     chat_folder_path = os.path.join(appdata_path, 'ollama-cli', 'chats')
     default_model_path = os.path.join(appdata_path, 'ollama-cli', 'default.txt')
+
+else:
+    console.print("Your OS is not yet compatible with ollama-cli. Please use Linux or Windows", style='bold red')
 
 os.makedirs(chat_folder_path, exist_ok=True)
 
@@ -212,13 +215,13 @@ while True:
             model = new_model
             console.print(f"Now using [bold green]{model}.[/bold green]", style="bold green")
         else:
-            console.print(f"Model is not installed or existing. Choose one of your installed ones:\n\n{models_string}", style="bold red")
+            console.print("Model is not installed or existing. Choose one of your installed ones:\n", style="bold red")
+            print(models_string)
 
     
 
     elif user_prompt.startswith("/file "):
         file_path = user_prompt[6:].strip()
-        print(file_path)
         if os.path.exists(file_path):
             try:
                 with open(file_path, 'r', encoding='utf-8') as file:
@@ -229,7 +232,7 @@ while True:
                 messages.append({'role':'user', 'content':f"""Given to you is a file called "{file_name}". This is, what the user wants you to do or to answer: "{user_prompt_file}". 
                                  And this is the file content: 
                                  "{file_content}" """})
-                print("assistant: ", end='')
+                console.print("assistant: ", end='', style="bold cyan")
                 try:
                     response = ""
                     for part in ollama.chat(model=model, messages=messages, stream=True):
@@ -240,7 +243,7 @@ while True:
                     if savedchat:
                         save(chat_name)
                 except Exception as e:
-                    print(f"Error while trying to start model: {str(e)}")
+                    print(f"Error while trying to use model: {str(e)}")
             except Exception as e:
                 print(f"Error: File not found or isn't a text file")
 
@@ -254,6 +257,28 @@ while True:
                 break
         with open(write_file_name, 'w') as f:
             f.write(last_assistant_entry)
+    
+    elif user_prompt.startswith("/image "):
+        image_path = []
+        image_path.append(user_prompt[7:])
+        print(image_path)
+        if os.path.exists(user_prompt[7:]):
+            user_prompt_image = input("Your prompt > ")
+            messages.append({'role':'user','content':user_prompt_image,'images':image_path})
+            console.print("assistant: ", end='', style="bold cyan")
+            try:
+                response = ""
+                for part in ollama.chat(model=model, messages=messages, stream=True):
+                    print(part['message']['content'], end='', flush=True)
+                    response += part['message']['content']
+                print()
+                messages.append({'role': 'assistant', 'content': response})
+                if savedchat:
+                    save(chat_name)
+            except Exception as e:
+                print(f"Error while trying to use model: {str(e)}")
+        else:
+            console.print("Image file not found.", style="bold red")
 
     elif user_prompt == "/exit":
         exit()
