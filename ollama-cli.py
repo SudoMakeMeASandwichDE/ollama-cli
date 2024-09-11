@@ -7,6 +7,12 @@ import os
 import ast
 import platform
 import argparse
+from googlesearch import search
+import datetime
+
+date_and_time = datetime.datetime.now()
+date = date_and_time.date()
+print(date)
 
 console = Console()
 
@@ -261,7 +267,6 @@ while True:
     elif user_prompt.startswith("/image "):
         image_path = []
         image_path.append(user_prompt[7:])
-        print(image_path)
         if os.path.exists(user_prompt[7:]):
             user_prompt_image = input("Your prompt > ")
             messages.append({'role':'user','content':user_prompt_image,'images':image_path})
@@ -279,6 +284,16 @@ while True:
                 print(f"Error while trying to use model: {str(e)}")
         else:
             console.print("Image file not found.", style="bold red")
+
+    elif user_prompt.startswith("/search "):
+        user_prompt_search = user_prompt[8:]
+        messages_search = messages
+        messages_search.append({'role':'user','content':f"Help me posing a good and short search query for a google search to quickly get a result for my question. Please let your answer ONLY CONTAIN THE SEARCH QUERY and NO QUOTAION MARKS! If needed, this is today's date: {date} And that's the question you have to generate a short google search query from: '{user_prompt_search}'"})
+        query = ollama.chat(model=model, messages=messages_search)
+        query = query['message']['content']
+        print(f"Query: {query}")
+        for link in search(query, num_results=10):
+            print(link)
 
     elif user_prompt == "/exit":
         exit()
