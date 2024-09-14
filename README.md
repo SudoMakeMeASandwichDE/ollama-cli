@@ -30,6 +30,9 @@ On Windows, these will be saved in `C:\Users\<username>\AppData\ollama-cli`
   - New design and better error management (thanks to [KastienDevOp](https://github.com/KastienDevOp))
   - Image input with `/image [image_path]`
   - Other small improvements
+- 1.2.1
+  - Better error handling for user inputs
+  - Small bug fixes
 ---
 NO OFFICIAL OLLAMA PRODUCT
 
