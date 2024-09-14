@@ -1,3 +1,4 @@
+# Made in Germany
 from rich import print as rprint
 from rich.console import Console
 from rich.panel import Panel
@@ -46,6 +47,7 @@ elif platform.system() == 'Windows':
 
 else:
     console.print("Your OS is not yet compatible with ollama-cli. Please use Linux or Windows", style='bold red')
+    exit()
 
 os.makedirs(chat_folder_path, exist_ok=True)
 
@@ -91,6 +93,9 @@ if not argmodelbool:
                 maybemodel = file.read().strip()
             if maybemodel in models_array:
                 defaultmodelbool = True
+            else:
+                console.print("The model which has been set as default isn't existing.\n", style="bold red")
+                os.remove(default_model_path)
         except Exception as e:
             console.print(f"Error reading default model: [bold red]{str(e)}[/bold red]", style="bold red")
 
@@ -99,17 +104,23 @@ if not argmodelbool:
         console.print(f"Welcome to [bold green]{model}![/bold green]")
     else:
         while True:
-            console.print(f"Choose one of the following models:\n\n{models_string}")
-            model = input("> ")
+            print(f"Choose one of the following models:\n\n{models_string}")
+            try:
+                model = input("> ").strip()
+            except KeyboardInterrupt:
+                console.print("\nexited with ^C", style="bold red")
+                exit()
             if model in models_array:
-                console.print(f"\nWelcome to [bold green]{model}![/bold green]")
                 if not os.path.exists(default_model_path):
-                    if input(f"Do you want to set [bold green]{model}[/bold green] as default? [y/n] > ").lower() == "y":
+                    console.print(f"Do you want to set [bold green]{model}[/bold green] as default? [y/n] ", end='')
+                    setdeafaultyn = input("> ").lower().strip()
+                    if setdeafaultyn == "y":
                         try:
                             with open(default_model_path, 'w') as file:
                                 file.write(model)
                         except Exception as e:
                             console.print(f"Error setting default model: [bold red]{str(e)}[/bold red]", style="bold red")
+                console.print(f"\nWelcome to [bold green]{model}![/bold green]")
                 break
             else:
                 console.print("Error: Model does not exist\n", style="bold red")
@@ -146,7 +157,11 @@ def load_chat(chat_name):
 while True:
     file = False
     websearch = False
-    user_prompt = input("> ").strip()
+    try:
+        user_prompt = input("> ").strip()
+    except KeyboardInterrupt:
+        console.print("\nexited with ^C", style="bold red")
+        exit()
 
     if user_prompt == "/?":
         console.print(Panel(
@@ -228,7 +243,10 @@ while True:
                     file_content = file.read()
                 file = True
                 file_name = os.path.basename(file_path)
-                user_prompt_file = input("Your Prompt > ")
+                try:
+                    user_prompt_file = input("Your Prompt > ")
+                except KeyboardInterrupt:
+                    console.print("exited with ^C", style="bold red")
                 messages.append({'role':'user', 'content':f"""Given to you is a file called "{file_name}". This is, what the user wants you to do or to answer: "{user_prompt_file}". 
                                  And this is the file content: 
                                  "{file_content}" """})
@@ -263,7 +281,10 @@ while True:
         image_path.append(user_prompt[7:])
         print(image_path)
         if os.path.exists(user_prompt[7:]):
-            user_prompt_image = input("Your prompt > ")
+            try:
+                user_prompt_image = input("Your prompt > ")
+            except KeyboardInterrupt:
+                console.print("exited with ^C", style="bold red")
             messages.append({'role':'user','content':user_prompt_image,'images':image_path})
             console.print("assistant: ", end='', style="bold cyan")
             try:
