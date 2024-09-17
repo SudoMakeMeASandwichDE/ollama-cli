@@ -33,6 +33,10 @@ On Windows, these will be saved in `C:\Users\<username>\AppData\ollama-cli`
 - 1.2.1
   - Better error handling for user inputs
   - Small bug fixes
+
+## Features in progress
+- Browsing the internet to get latest information
+- Stable Windows support
 ---
 NO OFFICIAL OLLAMA PRODUCT
 
