@@ -1,3 +1,4 @@
+# Made in Germany
 from rich import print as rprint
 from rich.console import Console
 from rich.panel import Panel
@@ -7,12 +8,11 @@ import os
 import ast
 import platform
 import argparse
-from googlesearch import search
 import datetime
+from googlesearch import search
 
-date_and_time = datetime.datetime.now()
-date = date_and_time.date()
-print(date)
+now = datetime.datetime.now()
+date = now.date()
 
 console = Console()
 
@@ -52,6 +52,7 @@ elif platform.system() == 'Windows':
 
 else:
     console.print("Your OS is not yet compatible with ollama-cli. Please use Linux or Windows", style='bold red')
+    exit()
 
 os.makedirs(chat_folder_path, exist_ok=True)
 
@@ -97,6 +98,9 @@ if not argmodelbool:
                 maybemodel = file.read().strip()
             if maybemodel in models_array:
                 defaultmodelbool = True
+            else:
+                console.print("The model which has been set as default isn't existing.\n", style="bold red")
+                os.remove(default_model_path)
         except Exception as e:
             console.print(f"Error reading default model: [bold red]{str(e)}[/bold red]", style="bold red")
 
@@ -105,17 +109,23 @@ if not argmodelbool:
         console.print(f"Welcome to [bold green]{model}![/bold green]")
     else:
         while True:
-            console.print(f"Choose one of the following models:\n\n{models_string}")
-            model = input("> ")
+            print(f"Choose one of the following models:\n\n{models_string}")
+            try:
+                model = input("> ").strip()
+            except KeyboardInterrupt:
+                console.print("\nexited with ^C", style="bold red")
+                exit()
             if model in models_array:
-                console.print(f"\nWelcome to [bold green]{model}![/bold green]")
                 if not os.path.exists(default_model_path):
-                    if input(f"Do you want to set [bold green]{model}[/bold green] as default? [y/n] > ").lower() == "y":
+                    console.print(f"Do you want to set [bold green]{model}[/bold green] as default? [y/n] ", end='')
+                    setdeafaultyn = input("> ").lower().strip()
+                    if setdeafaultyn == "y":
                         try:
                             with open(default_model_path, 'w') as file:
                                 file.write(model)
                         except Exception as e:
                             console.print(f"Error setting default model: [bold red]{str(e)}[/bold red]", style="bold red")
+                console.print(f"\nWelcome to [bold green]{model}![/bold green]")
                 break
             else:
                 console.print("Error: Model does not exist\n", style="bold red")
@@ -152,7 +162,11 @@ def load_chat(chat_name):
 while True:
     file = False
     websearch = False
-    user_prompt = input("> ").strip()
+    try:
+        user_prompt = input("> ").strip()
+    except KeyboardInterrupt:
+        console.print("\nexited with ^C", style="bold red")
+        exit()
 
     if user_prompt == "/?":
         console.print(Panel(
@@ -162,7 +176,8 @@ while True:
             /list to list chats
             /new to start a new chat
             /delete [chat name] to delete chat
-            /file [file path] to upload a text file (experimental)
+            /image [image path] to upload an image
+            /file [file path] to upload a text file
             /write [file path] to write the LLM's last answer to a file
             /changemodel [model name] to change model
             /exit to exit
@@ -234,7 +249,10 @@ while True:
                     file_content = file.read()
                 file = True
                 file_name = os.path.basename(file_path)
-                user_prompt_file = input("Your Prompt > ")
+                try:
+                    user_prompt_file = input("Your Prompt > ")
+                except KeyboardInterrupt:
+                    console.print("exited with ^C", style="bold red")
                 messages.append({'role':'user', 'content':f"""Given to you is a file called "{file_name}". This is, what the user wants you to do or to answer: "{user_prompt_file}". 
                                  And this is the file content: 
                                  "{file_content}" """})
@@ -267,8 +285,12 @@ while True:
     elif user_prompt.startswith("/image "):
         image_path = []
         image_path.append(user_prompt[7:])
+        print(image_path)
         if os.path.exists(user_prompt[7:]):
-            user_prompt_image = input("Your prompt > ")
+            try:
+                user_prompt_image = input("Your prompt > ")
+            except KeyboardInterrupt:
+                console.print("exited with ^C", style="bold red")
             messages.append({'role':'user','content':user_prompt_image,'images':image_path})
             console.print("assistant: ", end='', style="bold cyan")
             try:
@@ -284,16 +306,21 @@ while True:
                 print(f"Error while trying to use model: {str(e)}")
         else:
             console.print("Image file not found.", style="bold red")
-
+        
     elif user_prompt.startswith("/search "):
         user_prompt_search = user_prompt[8:]
         messages_search = messages
-        messages_search.append({'role':'user','content':f"Help me posing a good and short search query for a google search to quickly get a result for my question. Please let your answer ONLY CONTAIN THE SEARCH QUERY and NO QUOTAION MARKS! If needed, this is today's date: {date} And that's the question you have to generate a short google search query from: '{user_prompt_search}'"})
-        query = ollama.chat(model=model, messages=messages_search)
+        messages_search.append({'role':'user','content':f"Help me posing a good and short search term for a google search to quickly get a result for my question. Please let your answer ONLY CONTAIN THE SEARCH TERM and NO QUOTAION MARKS! If needed, this is today's date: {date} And that's the question you have to generate a short google search term from: '{user_prompt_search}'"})
+        try:
+            query = ollama.chat(model=model, messages=messages_search)
+        except KeyboardInterrupt:
+            print()
+            continue
         query = query['message']['content']
-        print(f"Query: {query}")
-        for link in search(query, num_results=10):
-            print(link)
+        print(f'Searching for "{query}"...')
+        for result in search(query, num_results=5, lang='en'):
+            print(result)
+
 
     elif user_prompt == "/exit":
         exit()
@@ -303,9 +330,12 @@ while True:
         console.print("assistant: ", end='', style="bold cyan")
         try:
             response = ""
-            for part in ollama.chat(model=model, messages=messages, stream=True):
-                print(part['message']['content'], end='', flush=True)
-                response += part['message']['content']
+            try:
+                for part in ollama.chat(model=model, messages=messages, stream=True):
+                    print(part['message']['content'], end='', flush=True)
+                    response += part['message']['content']
+            except KeyboardInterrupt:
+                print(end='')
             print()
             messages.append({'role': 'assistant', 'content': response})
             if savedchat:
