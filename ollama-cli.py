@@ -309,9 +309,12 @@ while True:
         console.print("assistant: ", end='', style="bold cyan")
         try:
             response = ""
-            for part in ollama.chat(model=model, messages=messages, stream=True):
-                print(part['message']['content'], end='', flush=True)
-                response += part['message']['content']
+            try:
+                for part in ollama.chat(model=model, messages=messages, stream=True):
+                    print(part['message']['content'], end='', flush=True)
+                    response += part['message']['content']
+            except KeyboardInterrupt:
+                print(end='')
             print()
             messages.append({'role': 'assistant', 'content': response})
             if savedchat:
