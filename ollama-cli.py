@@ -173,7 +173,10 @@ while True:
             /delete [chat name] to delete chat
             /file [file path] to upload a text file (experimental)
             /write [file path] to write the LLM's last answer to a file
+            /info [model name] to show some information about a model
+            /info to show some information about the current model
             /changemodel [model name] to change model
+            /setdefault [model name] to change the default model
             /exit to exit
             """,
             title="Commands",
@@ -300,6 +303,60 @@ while True:
                 print(f"Error while trying to use model: {str(e)}")
         else:
             console.print("Image file not found.", style="bold red")
+    
+    elif user_prompt.startswith("/info"):
+        if user_prompt.startswith("/info "):
+            model_info = user_prompt[6:]
+        else:
+            model_info = model
+        try:
+            info = ollama.show(model_info)
+            info_dict = {}
+            try:
+                info_dict['basename'] = info['model_info']['general.basename']
+            except:
+                pass
+            try:
+                info_dict['family'] = ', '.join(info['details']['families'])
+            except:
+                pass
+            try:
+                info_dict['parameter size'] = info['details']['parameter_size']
+            except:
+                pass
+            try:
+                info_dict['supported languages'] = ', '.join(info['model_info']['general.languages'])
+            except:
+                pass
+            try:
+                info_dict['tags'] = ', '.join(info['model_info']['general.tags'])
+            except:
+                pass
+
+            table = Table(title=f"info for {model_info}",show_header=False)
+
+            table.add_column("name", justify="left", style="cyan", no_wrap=True)
+            table.add_column("entry", justify="left", style="magenta")
+
+            for name, eintrag in info_dict.items():
+                table.add_row(name, eintrag)
+
+            console.print(table)
+
+        except Exception as e:
+            console.print(f"error: {str(e)}", style='bold red')
+
+    elif user_prompt.startswith("/setdefault "):
+        try:
+            newdefault = user_prompt[15:]
+            if newdefault in models_array:
+                with open(default_model_path, 'w') as file:
+                    file.write(newdefault)
+                console.print(f"Changed default model to {newdefault}", style='bold green')
+            else:
+                console.print("model does not exist", style='bold red')
+        except Exception as e:
+            console.print(f"error: {str(e)}")
 
     elif user_prompt == "/exit":
         exit()
