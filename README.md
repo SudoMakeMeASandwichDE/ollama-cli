@@ -33,6 +33,9 @@ On Windows, these will be saved in `C:\Users\<username>\AppData\ollama-cli`
 - 1.2.1
   - Better error handling for user inputs
   - Small bug fixes
+- 1.3.0
+  - Added `/info` command to show some information about a model
+  - Added `/setdefault` command to set a model to default
 
 ## Features in progress
 - Browsing the internet to get latest information
