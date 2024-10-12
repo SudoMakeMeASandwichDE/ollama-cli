@@ -166,17 +166,17 @@ while True:
     if user_prompt == "/?":
         console.print(Panel(
             """
-            /save [chat name] to save chat
-            /load [chat name] to load chat
+            /save \[chat name] to save chat
+            /load \[chat name] to load chat
             /list to list chats
             /new to start a new chat
-            /delete [chat name] to delete chat
-            /file [file path] to upload a text file (experimental)
-            /write [file path] to write the LLM's last answer to a file
-            /info [model name] to show some information about a model
+            /delete \[chat name] to delete chat
+            /file \[file path] to upload a text file (experimental)
+            /write \[file path] to write the LLM's last answer to a file
+            /info \[model name] to show some information about a model
             /info to show some information about the current model
-            /changemodel [model name] to change model
-            /setdefault [model name] to change the default model
+            /changemodel \[model name] to change model
+            /setdefault \[model name] to change the default model
             /exit to exit
             """,
             title="Commands",
