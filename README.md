@@ -1,7 +1,7 @@
 # ollama-cli
 Simple but useful command line interface for Ollama to execute LLMs in the terminal.
 
-To use it, download `ollama-cli.py` and execute it with `python3 ollama-cli.py`. Make sure, you have the requrements installed (if not, do it with the command `pip install -r requirements.txt`), Ollama installed (If not, visit https://ollama.com/download) and the model(s) of your choice installed (if not, do it with the command `ollama pull [model]`, e.g. `llama3.1`).
+To use it, clone or download the project as zip and execute it with `python3 main.py`. Make sure, you have the requrements installed (if not, do it with the command `pip install -r requirements.txt`), Ollama installed (If not, visit https://ollama.com/download) and the model(s) of your choice installed (if not, do it with the command `ollama pull [model]`, e.g. `llama3.1`).
 
 Supports Linux and Windows (experimental)
 
@@ -36,6 +36,8 @@ On Windows, these will be saved in `C:\Users\<username>\AppData\ollama-cli`
 - 1.3.0
   - Added `/info` command to show some information about a model
   - Added `/setdefault` command to set a model to default
+- 1.3.1
+  - Restructured the whole project for better maintainability
 
 ## Features in progress
 - Browsing the internet to get latest information
