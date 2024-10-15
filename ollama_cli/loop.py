@@ -51,7 +51,7 @@ def main_loop():
 
         elif user_prompt == "/new":
             if not savedchat:
-                if input("Do you want to save chat? [y/n] > ").lower() == "y":
+                if input("Do you want to save chat? [y/n] > ").lower().strip() == "y":
                     chat_name = input("Chat name: > ").strip()
                     save.save(chat_name, messages)
                 messages = []

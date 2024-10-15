@@ -1,16 +1,12 @@
 # Made in Germany
 from rich.console import Console
 import os
-import argparse
 import ollama_cli.panels as panels
 import ollama_cli.save as save
 from ollama_cli.loop import main_loop
+from start import args
 
 console = Console()
-
-parser = argparse.ArgumentParser(description="ollama-cli, a simple but useful command line interface for Ollama to execute LLMs in the terminal.")
-parser.add_argument('-m', '--model', type=str, help='Start ollama-cli directly into a certain model')
-args = parser.parse_args()
 
 panels.welcome_panel()
 
