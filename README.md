@@ -38,6 +38,9 @@ On Windows, these will be saved in `C:\Users\<username>\AppData\ollama-cli`
   - Added `/setdefault` command to set a model to default
 - 1.3.1
   - Restructured the whole project for better maintainability
+- 1.3.2
+  - Huge improvements for efficiency, readability and maintainability
+  - Bug Fixes
 
 ## Features in progress
 - Browsing the internet to get latest information
