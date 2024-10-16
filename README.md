@@ -20,7 +20,7 @@ On Windows, these will be saved in `C:\Users\<username>\AppData\ollama-cli`
 
 ## What's new
 - 1.0.1:
-  - Added argument to directly start with a certian model (`python3 ollama-cli.py -m [model_name]`(now `python3 main.py -m [model_name]`))
+  - Added argument to directly start with a certian model (`python3 ollama-cli.py -m [model_name]`(now `python3 start.py -m [model_name]`))
   - Better perforamnce and code readability
 - 1.1.0
   - Text file upload with `/file [file_path]`
