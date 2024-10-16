@@ -5,4 +5,5 @@ parser = argparse.ArgumentParser(description="ollama-cli, a simple but useful co
 parser.add_argument('-m', '--model', type=str, help='Start ollama-cli directly into a certain model')
 args = parser.parse_args()
 
+# Start main.py script
 import main
